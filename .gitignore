@@ -2,8 +2,20 @@
 
 !.gitignore
 !.zshrc
-!scripts/*
 !.tmux.conf
-!.config/ghostty/config.ghostty
-!.config/zathura/zathurarc
-!.config/nvim/
+
+# i hate this :(
+!scripts/
+!scripts/**
+
+!.config/
+.config/*
+
+# !.config/nvim/
+# !.config/nvim/**
+
+!.config/ghostty/
+!.config/ghostty/**
+
+!.config/zathura/
+!.config/zathura/**

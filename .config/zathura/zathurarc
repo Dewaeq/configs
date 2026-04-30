@@ -1,0 +1,16 @@
+# set recolor true
+# set recolor-darkcolor "#dcdccc"
+# set recolor-lightcolor "#1f1f1f"
+
+# Enable SyncTeX
+set synctex true
+
+# Inverse Search: Ctrl+Click in Zathura to jump to Neovim
+# We use 'nvr' if installed, or the built-in nvim server command:
+set synctex-editor-command "nvim --server $NVIM --remote-send '%{line}G'"
+
+# Better UI for Zathura
+set selection-clipboard clipboard
+set statusbar-h-padding 0
+set statusbar-v-padding 0
+set page-padding 1
