@@ -1,0 +1,9 @@
+*
+
+!.gitignore
+!.zshrc
+!scripts/*
+!.tmux.conf
+!.config/ghostty/config.ghostty
+!.config/zathura/zathurarc
+!.config/nvim/
