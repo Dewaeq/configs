@@ -1,0 +1,13 @@
+/* Yaru light, same colors as waybar and rofi */
+:root {
+  --cc-bg: #FAFAFA;
+  --noti-bg: 255, 255, 255;
+  --noti-bg-darker: #F0F0F0;
+  --noti-bg-hover: #F0F0F0;
+  --noti-bg-focus: #E8E8E8;
+  --noti-close-bg: #E0E0E0;
+  --noti-close-bg-hover: #D0D0D0;
+  --noti-border-color: #c7c7c7;
+  --text-color: #3D3D3D;
+  --text-color-disabled: rgba(61, 61, 61, 0.5);
+}

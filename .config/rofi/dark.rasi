@@ -1,0 +1,9 @@
+/* Yaru dark, same colors as waybar */
+* {
+    bg:        #2c2c2c;
+    fg:        #F7F7F7;
+    dim:       #F7F7F780;
+    border:    #181818;
+    accent:    #E95420;
+    accent-fg: #FFFFFF;
+}

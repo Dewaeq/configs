@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# From https://github.com/ericmurphyxyz/rofi-wifi-menu at d6debde (reviewed 2026-10-10)
+# Changed: the password prompt hides input (-password); networks with several
+# access points are deduplicated instead of dropped (uniq -u -> awk); known
+# networks are matched on SSID and reuse their saved profile; errors are shown;
+# SSIDs are read from terse output so trailing spaces etc. survive.
+
+notify-send "Getting list of available Wi-Fi networks..."
+# Terse nmcli output keeps SSIDs exact (spaces included; ':' is escaped as '\:').
+# Each line is an icon, two spaces, then the SSID; hidden networks are skipped.
+wifi_list=$(nmcli -t -f SECURITY,SSID device wifi list | awk -v lock='' -v open='' '{ i = index($0, ":"); sec = substr($0, 1, i - 1); ssid = substr($0, i + 1); gsub(/\\:/, ":", ssid); if (ssid != "") print (sec == "" ? open : lock) "  " ssid }')
+
+connected=$(nmcli -fields WIFI g)
+if [[ "$connected" =~ "enabled" ]]; then
+	toggle="󰖪  Disable Wi-Fi"
+elif [[ "$connected" =~ "disabled" ]]; then
+	toggle="󰖩  Enable Wi-Fi"
+fi
+
+# Use rofi to select wifi network
+chosen_network=$(echo -e "$toggle\n$wifi_list" | awk '!seen[$0]++' | rofi -dmenu -i -selected-row 1 -p "Wi-Fi SSID: " )
+# Get name of connection
+chosen_id="${chosen_network#*  }"   # strip the icon and the two spaces, keep the SSID exact
+
+if [ "$chosen_network" = "" ]; then
+	exit
+elif [ "$chosen_network" = "󰖩  Enable Wi-Fi" ]; then
+	nmcli radio wifi on
+elif [ "$chosen_network" = "󰖪  Disable Wi-Fi" ]; then
+	nmcli radio wifi off
+else
+	# Message to show when connection is activated successfully
+  	success_message="You are now connected to the Wi-Fi network \"$chosen_id\"."
+	# Match known networks on SSID (profile names can differ) and connect without a
+	# password, so nmcli reuses the saved profile instead of rewriting it
+	saved_ssids=$(nmcli -t -f UUID,TYPE connection | awk -F: '$2=="802-11-wireless"{print $1}' | xargs -r nmcli -g 802-11-wireless.ssid connection show | sed 's/\\:/:/g')
+	if grep -qxF "$chosen_id" <<< "$saved_ssids"; then
+		result=$(nmcli device wifi connect "$chosen_id" 2>&1)
+	else
+		password_args=()
+		if [[ "$chosen_network" =~ "" ]]; then
+			wifi_password=$(rofi -dmenu -password -p "Password: " )
+			[ -z "$wifi_password" ] && exit
+			password_args=(password "$wifi_password")
+		fi
+		result=$(nmcli device wifi connect "$chosen_id" "${password_args[@]}" 2>&1)
+	fi
+	if [[ "$result" == *successfully* ]]; then
+		notify-send "Connection Established" "$success_message"
+	else
+		notify-send "Wi-Fi connection failed" "$result"
+	fi
+fi

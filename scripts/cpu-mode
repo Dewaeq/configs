@@ -1,0 +1,29 @@
+#!/bin/sh
+# Cycles the CPU profile: saver -> balanced -> performance -> saver, and shows the
+# new one in the OSD and waybar. `cpu-mode --show` prints the active one for waybar.
+# Profiles live in ~/scripts/cpu-profiles/ (install with its update.sh); the daemon
+# reloads /etc/auto-cpufreq.conf when it changes. The cp is allowed without a
+# password by /etc/sudoers.d/cpu-profile.
+current=$(sed -n '1s/^# \([a-z]*\):.*/\1/p' /etc/auto-cpufreq.conf)
+icon() {
+    case "$1" in
+        saver)    echo 󰌪 ;;
+        balanced) echo 󰾅 ;;
+        *)        echo 󰓅 ;;
+    esac
+}
+if [ "$1" = --show ]; then
+    printf '{"text": "%s", "tooltip": "CPU profile: %s (Super+P to cycle)"}\n' "$(icon "$current")" "$current"
+    exit
+fi
+case "$current" in
+    saver)    next=balanced    osd_icon=power-profile-balanced-symbolic ;;
+    balanced) next=performance osd_icon=power-profile-performance-symbolic ;;
+    *)        next=saver       osd_icon=power-profile-power-saver-symbolic ;;
+esac
+if ! sudo -n cp "/etc/auto-cpufreq/$next.conf" /etc/auto-cpufreq.conf; then
+    notify-send -u critical "CPU mode" "Could not switch to $next (sudo rule missing?)"
+    exit 1
+fi
+pkill -RTMIN+8 -x waybar
+~/scripts/osd --custom-message "CPU: $next" --custom-icon "$osd_icon"

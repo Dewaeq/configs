@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Power menu for sway. Log out, reboot and shut down ask for confirmation first.
+menu="󰌾  Lock
+󰍃  Log out
+󰤄  Suspend
+󰜉  Reboot
+󰐥  Shut down"
+
+confirm() { [ "$(printf 'No\nYes\n' | rofi -dmenu -i -p "$1?")" = Yes ]; }
+
+case "$(rofi -dmenu -i -p Power -format i <<< "$menu")" in
+  0) swaylock -f -c 000000 ;;
+  1) confirm "Log out" && swaymsg exit ;;
+  2) systemctl suspend ;;  # swayidle locks before sleep
+  3) confirm "Reboot" && systemctl reboot ;;
+  4) confirm "Shut down" && systemctl poweroff ;;
+esac

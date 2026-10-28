@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+# Shortcut help: lists the sway bindings from ~/.config/sway/config (described by
+# the comment above them) and ghostty's keybinds, in a searchable rofi menu.
+# Enter on a sway shortcut runs it; on a ghostty one it just closes.
+import os
+import re
+import subprocess
+
+CONFIG = os.path.expanduser("~/.config/sway/config")
+NAMES = {"Mod4": "Super", "Mod1": "Alt", "Return": "Enter", "period": ".", "minus": "-",
+         "space": "Space", "ctrl": "Ctrl", "shift": "Shift", "alt": "Alt", "super": "Super",
+         "enter": "Enter", "escape": "Esc", "page_up": "PageUp", "page_down": "PageDown"}
+
+
+def pretty_key(key, keycodes=False):
+    parts = []
+    for p in key.split("+"):
+        if keycodes and p.isdigit():
+            p = str((int(p) - 9) % 10)  # keycodes 10-19 are the number row 1..0
+        p = NAMES.get(p, p).removeprefix("XF86").removeprefix("arrow_").removeprefix("digit_")
+        parts.append(p.capitalize() if p.islower() else p)
+    return "+".join(parts)
+
+
+def describe(lines):
+    # When a comment has several sentences, the last one describes the binding
+    for i in range(len(lines) - 2, -1, -1):
+        if lines[i].endswith("."):
+            return " ".join(lines[i + 1:])
+    return " ".join(lines)
+
+
+def sway_entries():
+    variables, entries, comment, mode, in_comment = {}, [], [], None, False
+    for line in open(CONFIG, encoding="utf-8"):
+        s = line.strip()
+        if s.startswith("#"):
+            text = s.lstrip("#").strip()
+            # A new comment block starts after code; a bare "#" separates section headers
+            comment = (comment if in_comment else []) + [text] if text else []
+            in_comment = True
+            continue
+        in_comment = False
+        if m := re.match(r"set (\$\w+) (.+)", s):
+            variables[m[1]] = m[2]
+        elif not s:
+            comment = []  # a blank line ends the comment that describes a group
+        elif m := re.match(r'mode "([^"]+)"', s):
+            mode, comment = m[1], []
+        elif s == "}":
+            mode, comment = None, []
+        elif m := re.match(r"(bindsym|bindcode)(?: --\S+)* (\S+) (.+)", s):
+            kind, key, cmd = m.groups()
+            run = cmd
+            for v in sorted(variables, key=len, reverse=True):  # $mod before $m...
+                key, run = key.replace(v, variables[v]), run.replace(v, variables[v])
+            label = pretty_key(key, keycodes=kind == "bindcode")
+            entries.append(((f"[{mode}] " if mode else "") + label,
+                            describe(comment), cmd.removeprefix("exec "), run))
+    return entries
+
+
+def ghostty_entries():
+    try:
+        out = subprocess.run(["ghostty", "+list-keybinds"], capture_output=True, text=True).stdout
+    except FileNotFoundError:
+        return []
+    entries, seen = [], set()
+    for line in out.splitlines():
+        # The trigger may itself contain "=" (ctrl+==...), the action is lowercase_with:args
+        if m := re.match(r"keybind = (.+?)=([a-z_]+(?::.*)?)$", line):
+            key, action = pretty_key(m[1]), m[2].replace("_", " ").replace(":", ": ")
+            if (key, action) not in seen:
+                seen.add((key, action))
+                entries.append((key, "Ghostty", action, None))
+    return entries
+
+
+def cut(text, width):
+    return text if len(text) <= width else text[: width - 1] + "…"
+
+
+entries = sway_entries() + ghostty_entries()
+kw = max(len(e[0]) for e in entries)
+menu = "\n".join(f"{e[0]:<{kw}}   {cut(e[1], 50):<50}   {cut(e[2], 45)}" for e in entries)
+pick = subprocess.run(
+    ["rofi", "-dmenu", "-i", "-p", "Shortcuts", "-format", "i", "-theme-str", "window { width: 1150px; } listview { lines: 20; }"],
+    input=menu, capture_output=True, text=True,
+).stdout.strip()
+if pick and entries[int(pick)][3]:
+    subprocess.run(["swaymsg", entries[int(pick)][3]], capture_output=True)

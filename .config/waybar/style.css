@@ -1,0 +1,92 @@
+/* Colors come from the GTK theme, so the bar follows the light/dark toggle. */
+* {
+    font-family: "JetBrainsMono Nerd Font", sans-serif;
+    font-size: 14px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: @theme_bg_color;
+    color: @theme_fg_color;
+    /* @borders is near-invisible in dark mode; a faded fg contrasts in both */
+    border-bottom: 1px solid alpha(@theme_fg_color, 0.3);
+}
+
+/* Workspaces: dimmed numbers, the focused one gets an orange underline */
+#workspaces button {
+    padding: 0 10px;
+    min-width: 20px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    background-image: none;
+    text-shadow: none;
+    color: alpha(@theme_fg_color, 0.55);
+}
+
+#workspaces button:hover {
+    background: alpha(@theme_fg_color, 0.08);
+}
+
+#workspaces button.focused {
+    color: @theme_fg_color;
+    box-shadow: inset 0 -3px @theme_selected_bg_color;
+}
+
+#workspaces button.urgent {
+    color: @error_color;
+    box-shadow: inset 0 -3px @error_color;
+}
+
+#mode {
+    padding: 0 12px;
+    background: @warning_color;
+    color: @theme_selected_fg_color;
+}
+
+#clock {
+    font-weight: bold;
+}
+
+#custom-ascii-emoji {
+    padding: 0 12px;
+}
+
+/* grouped modules sit tighter, each group in an outlined box */
+#cpu, #temperature, #memory,
+#custom-notification, #bluetooth, #network, #pulseaudio,
+#custom-cpu-mode, #battery, #custom-power {
+    padding: 0 8px;
+}
+
+#tray {
+    padding: 0 10px;
+}
+
+#hardware, #tray, #connectivity, #power {
+    margin: 4px 6px;
+    border: 1px solid alpha(@theme_fg_color, 0.3);
+    border-radius: 6px;
+}
+
+#bluetooth.off, #bluetooth.disabled, #network.disconnected, #pulseaudio.muted {
+    opacity: 0.5;
+}
+
+#battery.warning:not(.charging) {
+    color: @warning_color;
+}
+
+#battery.critical:not(.charging) {
+    color: @error_color;
+}
+
+#temperature.critical {
+    color: @error_color;
+}
+
+/* keep the last tile (power) off the screen edge */
+.modules-right {
+    margin-right: 6px;
+}

@@ -6,6 +6,7 @@ gtk-single-instance = true
 shell-integration-features = ssh-env,ssh-terminfo
 
 window-decoration = true
+# window-decoration = false
 
 scrollback-limit = 1000000000
 confirm-close-surface = false
@@ -32,10 +33,13 @@ keybind = alt+down=goto_split:down
 
 keybind = ctrl+shift+x=close_surface
 
+keybind = ctrl+à=reset_font_size
+keybind = ctrl+zero=reset_font_size
+
 # Text
 cursor-style = block
 shell-integration-features = no-cursor
 
 # font-family = ""
 font-family = "JetBrainsMono Nerd Font"
-font-size = 14
+font-size = 13

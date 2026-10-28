@@ -1,0 +1,24 @@
+/* swaync in the same style as waybar and rofi: Yaru colors, Ubuntu orange,
+   square corners, JetBrainsMono. colors.css is a copy of light.css or dark.css,
+   swapped by ~/scripts/toggle-theme.sh (swaync doesn't follow light/dark itself). */
+@import url("file:///etc/xdg/swaync/style.css");
+@import url("colors.css");
+
+:root {
+  --noti-bg-alpha: 1;
+  --bg-selected: #E95420;
+  --border-radius: 0;
+  --notification-shadow: none;
+}
+
+* {
+  font-family: "JetBrainsMono Nerd Font", sans-serif;
+}
+
+.control-center {
+  border: 1px solid var(--noti-border-color);
+}
+
+.widget-dnd switch:checked {
+  background: var(--bg-selected);
+}

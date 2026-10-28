@@ -1,5 +1,8 @@
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+export PATH=$HOME/tools/balena/bin/:$PATH
+# export PATH="/home/dewaeq/.devcontainers/bin:$PATH"
+export PATH="/home/dewaeq/.platformio/penv/bin:$PATH"
 
 export PNPM_HOME="/home/dewaeq/.local/share/pnpm"
 case ":$PATH:" in
@@ -34,13 +37,20 @@ zstyle ':completion:*' rehash true
 # much, much faster.
 DISABLE_UNTRACKED_FILES_DIRTY="true"
 
+export NVM_LAZY_LOAD=true
+
 plugins=(
 	git
   rust
+  zsh-nvm
 )
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && alias nvm='unalias nvm node npm pnpm; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; nvm $@'
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && alias nvm='unalias nvm node npm pnpm; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; nvm $@'
+# export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
 
 source $ZSH/oh-my-zsh.sh
 
@@ -51,14 +61,36 @@ zsh-defer source $ZSH/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highligh
 
 # User configuration
 alias aut="cd $AUTONOMOUS_REPO_BASE_DIR"
+alias ugr='/home/dewaeq/autonomous/scripts/ugr.sh'
 alias s="ugr shell"
-alias ugr='/home/dewaeq/autonomous/ugr.sh'
 
 alias cpufreq="watch -n 1 \"cat /proc/cpuinfo | grep -i mhz | grep -o '[0-9]*\.' | sort -nr\""
 alias mux=tmuxinator
+alias n=nvim
+
+alias xo=xdg-open
+
+alias rg="rg -S"
+
+alias act="source .venv/bin/activate"
 
 # config git config
 alias config='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+
+
+# Multiple claude accounts
+alias claude-ps="CLAUDE_CONFIG_DIR=~/.claude-ps/ claude"
+alias claude-ugr="CLAUDE_CONFIG_DIR=~/.claude-ugr/ claude"
+alias cu="claude-ugr"
+alias cuu="claude-ugr /usage"
+alias cur="claude-ugr /resume"
+
+function mdd() {
+  local target=/tmp/$1.html
+  mkdir -p "${target%/*}"
+  pandoc $1 > $target
+  xdg-open $target
+}
 
 # ros2 run --prefix "gdb -ex 'break main' -ex run --args" graph_slam graph_slam_node
 # colcon --log-base /home/ugr/autonomous/.build/log/ build --build-base /home/ugr/autonomous/.build/build/ --install-base /home/ugr/autonomous/.build/install/ --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXPORT_COMPILE_COMMANDS=1 --continue-on-error

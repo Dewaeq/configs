@@ -1,0 +1,64 @@
+configuration {
+    show-icons: true;
+    font: "JetBrainsMono Nerd Font 11";
+}
+
+/* Start from an empty theme instead of rofi's default */
+@theme "/dev/null"
+/* colors.rasi is a copy of light.rasi or dark.rasi, swapped by ~/scripts/toggle-theme.sh */
+@import "~/.config/rofi/colors.rasi"
+
+* {
+    background-color: transparent;
+    text-color: @fg;
+}
+
+window {
+    width: 600px;
+    background-color: @bg;
+    border: 1px;
+    border-color: @border;
+}
+
+inputbar {
+    padding: 10px 12px;
+    spacing: 8px;
+    children: [prompt, entry];
+    border: 0 0 1px 0;
+    border-color: @border;
+}
+
+prompt {
+    text-color: @accent;
+}
+
+entry {
+    placeholder: "Search";
+    placeholder-color: @dim;
+}
+
+listview {
+    lines: 10;
+    fixed-height: false;
+    scrollbar: false;
+    padding: 4px 0;
+}
+
+element {
+    padding: 6px 12px;
+    spacing: 10px;
+}
+
+element selected {
+    background-color: @accent;
+    text-color: @accent-fg;
+}
+
+element-icon {
+    size: 1.2em;
+}
+
+element-text {
+    text-color: inherit;
+    vertical-align: 0.5;
+}

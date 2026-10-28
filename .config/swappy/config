@@ -1,0 +1,7 @@
+[Config]
+save_dir=/home/dewaeq/Pictures/Screenshots
+save_filename_format=swappy_Screenshot-%Y%m%d-%H%M%S.png
+auto_save=true
+show_panel=true
+line_size=5
+text_size=20

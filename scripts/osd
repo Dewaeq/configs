@@ -1,0 +1,13 @@
+#!/bin/sh
+# swayosd-client for the volume/brightness keys. If swayosd-server isn't answering
+# (on 2026-10-10 the copy started at login came up without its D-Bus name, cause
+# unknown), restart it and retry, so the keys keep working either way.
+# A failed client call changes nothing, so retrying can't apply a key press twice.
+swayosd-client "$@" 2>/dev/null && exit 0
+pkill -x swayosd-server
+setsid swayosd-server >/dev/null 2>&1 &
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    sleep 0.2
+    swayosd-client "$@" 2>/dev/null && exit 0
+done
+exit 1

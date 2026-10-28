@@ -1,0 +1,325 @@
+# Default config for sway
+#
+# Copy this to ~/.config/sway/config and edit it to your liking.
+#
+# Read `man 5 sway` for a complete reference.
+
+### Variables
+#
+# Logo key. Use Mod1 for Alt.
+set $mod Mod4
+# Home row direction keys, like vim
+set $left h
+set $down j
+set $up k
+set $right l
+# Your preferred terminal emulator
+# set $term foot
+# Ask the running ghostty (started below) for a window over D-Bus, which is much
+# faster than starting a ghostty process; fall back to that if it isn't running
+set $term gapplication action com.mitchellh.ghostty new-window || ghostty
+# Your preferred application launcher
+# set $menu wmenu-run
+set $menu ~/scripts/launcher
+# Build the launcher's cached app/web/file list at login (it refreshes itself after each use)
+exec ~/scripts/launcher --refresh
+
+include /etc/sway/config-vars.d/*
+
+### Output configuration
+#
+# Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
+# This is commented in Debian, because the Sway wallpaper files are in a separate
+# package `sway-backgrounds`. Installing this package drops a config file to
+# /etc/sway/config.d/
+# output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
+#
+# Example configuration:
+#
+#   output HDMI-A-1 resolution 1920x1080 position 1920,0
+#
+# You can get the names of your outputs by running: swaymsg -t get_outputs
+
+output * bg ~/Pictures/Wallpapers/callisto_naked.jpg fill
+
+### Idle configuration
+#
+# On battery (ADP1/online = 0): lock after 5 minutes idle, screen off after 10.
+# Plugged in nothing happens when idle. Always lock before the laptop sleeps.
+exec swayidle -w \
+         timeout 300 '[ "$(cat /sys/class/power_supply/ADP1/online)" = 0 ] && swaylock -f -c 000000' \
+         timeout 600 '[ "$(cat /sys/class/power_supply/ADP1/online)" = 0 ] && swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
+         before-sleep 'swaylock -f -c 000000'
+
+### Input configuration
+#
+# Example configuration:
+#
+#   input type:touchpad {
+#       dwt enabled
+#       tap enabled
+#       natural_scroll enabled
+#       middle_emulation enabled
+#   }
+#
+#   input type:keyboard {
+#       xkb_layout "eu"
+#   }
+#
+# You can also configure each device individually.
+# Read `man 5 sway-input` for more information about this section.
+
+input type:touchpad {
+    dwt enabled
+    tap enabled
+    natural_scroll enabled
+    middle_emulation enabled
+}
+
+input "type:keyboard" {
+    xkb_layout "be"
+    xkb_numlock enabled
+}
+
+### Key bindings
+#
+# Basics:
+#
+    # Start a terminal
+    bindsym $mod+Return exec $term
+    # Keep one windowless ghostty running for $term to talk to
+    # (gtk-single-instance is on in config.ghostty; these flags only apply here, not in GNOME)
+    exec ghostty --initial-window=false --quit-after-last-window-closed=false
+
+    # Browser shortcut
+    bindsym $mod+Shift+f exec /usr/bin/firefox
+
+    # Kill focused window
+    bindsym $mod+Shift+q kill
+
+    # Start your launcher
+    bindsym $mod+d exec $menu
+
+    # Wi-Fi and Bluetooth menus (same as clicking them in waybar)
+    bindsym $mod+Shift+w exec ~/scripts/rofi-wifi
+    bindsym $mod+Shift+b exec ~/scripts/rofi-bluetooth
+
+    # ASCII emoji picker (same list and favourites as the GNOME extension)
+    bindsym $mod+period exec ~/scripts/rofi-ascii-emoji
+
+    # Shortcut help: searchable list of all shortcuts, Enter runs a sway one
+    bindsym $mod+F1 exec ~/scripts/sway-keys
+
+    # Power menu: lock, log out, suspend, reboot, shut down
+    bindsym $mod+Escape exec ~/scripts/rofi-power
+
+    # CPU mode: cycle the profile saver -> balanced -> performance
+    bindsym $mod+p exec ~/scripts/cpu-mode
+
+    # Notifications: swaync shows popups and keeps a history panel
+    exec swaync
+    bindsym $mod+n exec swaync-client -t -sw
+
+    # Clipboard history: record every copy (text and images), pick an old one
+    exec wl-paste --type text --watch cliphist store
+    exec wl-paste --type image --watch cliphist store
+    bindsym $mod+Shift+v exec cliphist list | rofi -dmenu -p Clipboard -display-columns 2 | cliphist decode | wl-copy
+
+    # Drag floating windows by holding down $mod and left mouse button.
+    # Resize them with right mouse button + $mod.
+    # Despite the name, also works for non-floating windows.
+    # Change normal to inverse to use left mouse button for resizing and right
+    # mouse button for dragging.
+    floating_modifier $mod normal
+
+    # When an app asks to be brought forward (e.g. Firefox opening a link from the
+    # launcher in its existing window), focus it instead of only marking it urgent
+    focus_on_window_activation focus
+
+    # Reload the configuration file
+    bindsym $mod+Shift+c reload
+
+    # Exit sway (logs you out of your Wayland session)
+    bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+#
+# Moving around:
+#
+    # Move your focus around
+    bindsym $mod+$left focus left
+    bindsym $mod+$down focus down
+    bindsym $mod+$up focus up
+    bindsym $mod+$right focus right
+    # Or use $mod+[up|down|left|right]
+    bindsym $mod+Left focus left
+    bindsym $mod+Down focus down
+    bindsym $mod+Up focus up
+    bindsym $mod+Right focus right
+
+    # Move the focused window with the same, but add Shift
+    bindsym $mod+Shift+$left move left
+    bindsym $mod+Shift+$down move down
+    bindsym $mod+Shift+$up move up
+    bindsym $mod+Shift+$right move right
+    # Ditto, with arrow keys
+    bindsym $mod+Shift+Left move left
+    bindsym $mod+Shift+Down move down
+    bindsym $mod+Shift+Up move up
+    bindsym $mod+Shift+Right move right
+#
+# Workspaces:
+#
+    # Toggle between last two windows, on any workspace
+    bindsym Alt+Tab [con_mark=_prev] focus
+    exec ~/scripts/sway-last-window
+    # Toggle between last two workspaces
+    bindsym Alt+Shift+Tab workspace back_and_forth
+
+    # Keycodes 10-19 are the number row, so this works on AZERTY (be), where
+    # the unshifted keys are &é"'(§è!çà rather than digits.
+    # Switch to workspace
+    bindcode $mod+10 workspace number 1
+    bindcode $mod+11 workspace number 2
+    bindcode $mod+12 workspace number 3
+    bindcode $mod+13 workspace number 4
+    bindcode $mod+14 workspace number 5
+    bindcode $mod+15 workspace number 6
+    bindcode $mod+16 workspace number 7
+    bindcode $mod+17 workspace number 8
+    bindcode $mod+18 workspace number 9
+    bindcode $mod+19 workspace number 10
+    # Move focused container to workspace
+    bindcode $mod+Shift+10 move container to workspace number 1
+    bindcode $mod+Shift+11 move container to workspace number 2
+    bindcode $mod+Shift+12 move container to workspace number 3
+    bindcode $mod+Shift+13 move container to workspace number 4
+    bindcode $mod+Shift+14 move container to workspace number 5
+    bindcode $mod+Shift+15 move container to workspace number 6
+    bindcode $mod+Shift+16 move container to workspace number 7
+    bindcode $mod+Shift+17 move container to workspace number 8
+    bindcode $mod+Shift+18 move container to workspace number 9
+    bindcode $mod+Shift+19 move container to workspace number 10
+    # Note: workspaces can have any name you want, not just numbers.
+    # We just use 1-10 as the default.
+#
+# Layout stuff:
+#
+    # You can "split" the current object of your focus with
+    # $mod+b or $mod+v, for horizontal and vertical splits
+    # respectively.
+    bindsym $mod+b splith
+    bindsym $mod+v splitv
+
+    # Switch the current container between different layout styles
+    bindsym $mod+s layout stacking
+    bindsym $mod+w layout tabbed
+    bindsym $mod+e layout toggle split
+
+    # Make the current focus fullscreen
+    bindsym $mod+f fullscreen
+
+    # Toggle the current focus between tiling and floating mode
+    bindsym $mod+Shift+space floating toggle
+
+    # Swap focus between the tiling area and the floating area
+    bindsym $mod+space focus mode_toggle
+
+    # Move focus to the parent container
+    bindsym $mod+a focus parent
+#
+# Scratchpad:
+#
+    # Sway has a "scratchpad", which is a bag of holding for windows.
+    # You can send windows there and get them back later.
+
+    # Move the currently focused window to the scratchpad
+    bindsym $mod+Shift+minus move scratchpad
+
+    # Show the next scratchpad window or hide the focused scratchpad window.
+    # If there are multiple scratchpad windows, this command cycles through them.
+    bindsym $mod+minus scratchpad show
+#
+# Resizing containers:
+#
+mode "resize" {
+    # left will shrink the containers width
+    # right will grow the containers width
+    # up will shrink the containers height
+    # down will grow the containers height
+    bindsym $left resize shrink width 10px
+    bindsym $down resize grow height 10px
+    bindsym $up resize shrink height 10px
+    bindsym $right resize grow width 10px
+
+    # Ditto, with arrow keys
+    bindsym Left resize shrink width 10px
+    bindsym Down resize grow height 10px
+    bindsym Up resize shrink height 10px
+    bindsym Right resize grow width 10px
+
+    # Return to default mode
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod+r mode "resize"
+#
+# Utilities:
+#
+    # Volume and brightness keys, with an on-screen popup from swayosd
+    exec swayosd-server
+    bindsym --locked XF86AudioMute exec ~/scripts/osd --output-volume mute-toggle
+    bindsym --locked XF86AudioLowerVolume exec ~/scripts/osd --output-volume lower
+    bindsym --locked XF86AudioRaiseVolume exec ~/scripts/osd --output-volume raise
+    bindsym --locked XF86AudioMicMute exec ~/scripts/osd --input-volume mute-toggle
+    bindsym --locked XF86MonBrightnessDown exec ~/scripts/osd --brightness lower
+    bindsym --locked XF86MonBrightnessUp exec ~/scripts/osd --brightness raise
+
+    # Break reminders (BreakTimer sits in the waybar tray). Its own "launch at
+    # login" writes an XDG autostart entry, which sway doesn't run
+    exec breaktimer
+
+    # Screen time: ActivityWatch server + window/AFK watcher in one binary
+    # (awatcher bundle, installed by hand from github.com/2e3s/awatcher releases).
+    # Dashboard at http://localhost:5600, or from its tray icon
+    exec ~/.local/bin/awatcher
+
+    # Night light with a waybar tray icon; settings in ~/.config/gammastep/config.ini.
+    # The shortcut toggles it (USR1 to the gammastep child of the indicator)
+    exec gammastep-indicator
+    bindsym $mod+Shift+n exec pkill -USR1 -x gammastep
+
+    # Screenshots like GNOME: saved to ~/Pictures/Screenshots, copied to the
+    # clipboard, and announced in a notification
+    set $screenshot XDG_SCREENSHOTS_DIR=~/Pictures/Screenshots grimshot --notify savecopy
+    bindsym Print exec $screenshot area
+    bindsym Shift+Print exec $screenshot screen
+    bindsym Alt+Print exec $screenshot active
+
+    # Base helper: grimshot outputs directly to stdout, swappy picks it up
+    # set $screenshot_edit grimshot save
+    # bindsym Print exec grimshot save area - | swappy -f - -o ~/Pictures/Screenshots/swappy-$(date +'%Y%m%d-%H%M%S.png')
+    # bindsym Print exec $screenshot_edit area - | swappy -f -
+    # bindsym Shift+Print exec $screenshot_edit screen - | swappy -f -
+    # bindsym Mod1+Print exec $screenshot_edit active - | swappy -f -
+
+    # Toggle light/dark (same script as the GNOME Super+D shortcut)
+    bindsym $mod+t exec ~/scripts/toggle-theme.sh
+
+    # Jump to any tab/window instantly by searching title
+    bindsym $mod+Tab exec swaymsg -t get_tree | jq -r '.. | select(.type? == "con" and .name?) | "\(.id): \(.name)"' | rofi -dmenu -i | cut -d: -f1 | xargs -r -I{} swaymsg "[con_id={}] focus"
+
+#
+# Floating windows:
+#
+    # Pop-ups opened from waybar float in the middle instead of tiling
+    for_window [app_id="org.pulseaudio.pavucontrol"] floating enable, resize set 800 500, move position center
+    for_window [app_id="blueman-manager"] floating enable, resize set 800 500, move position center
+    for_window [app_id="com.mitchellh.ghostty.nmtui"] floating enable, resize set 800 500, move position center
+#
+# Status Bar:
+#
+# Read `man 5 sway-bar` for more information about this section.
+bar {
+    swaybar_command waybar
+}
+
+include /etc/sway/config.d/*

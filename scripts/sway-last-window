@@ -1,0 +1,9 @@
+#!/bin/sh
+# Runs at login: marks the previously focused window "_prev", on any workspace,
+# so Alt+Tab can focus it. The mark moves with each focus change, so it toggles.
+swaymsg -m -t subscribe '["window"]' |
+    jq --unbuffered -r 'select(.change == "focus") | .container.id' |
+    while read -r id; do
+        [ -n "$prev" ] && [ "$id" != "$prev" ] && swaymsg -q "[con_id=$prev] mark --add _prev"
+        prev=$id
+    done

@@ -1,0 +1,159 @@
+{
+    "spacing": 4,
+    "modules-left": [
+        "sway/workspaces",
+        "sway/mode"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "group/hardware",
+        "custom/ascii-emoji",
+        "tray",
+        "group/connectivity",
+        "group/power"
+    ],
+    "clock": {
+        "format": "{:%a %d %b  %H:%M}",
+        "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    "group/hardware": {
+        "orientation": "horizontal",
+        "modules": [
+            "cpu",
+            "temperature",
+            "memory"
+        ]
+    },
+    "group/connectivity": {
+        "orientation": "horizontal",
+        "modules": [
+            "custom/notification",
+            "bluetooth",
+            "network",
+            "pulseaudio"
+        ]
+    },
+    "group/power": {
+        "orientation": "horizontal",
+        "modules": [
+            "custom/cpu-mode",
+            "battery",
+            "custom/power"
+        ]
+    },
+    "tray": {
+        "spacing": 6
+    },
+    "bluetooth": {
+        "format": "󰂯",
+        "format-off": "󰂲",
+        "format-disabled": "󰂲",
+        "format-connected": "󰂱 {device_alias}",
+        "on-click": "~/scripts/rofi-bluetooth",
+        "on-click-right": "blueman-manager"
+    },
+    "network": {
+        "format-wifi": "{icon} {essid}",
+        "format-icons": [
+            "󰤟",
+            "󰤢",
+            "󰤥",
+            "󰤨"
+        ],
+        "format-ethernet": "󰈀",
+        "format-disconnected": "󰤮",
+        "on-click": "~/scripts/rofi-wifi",
+        "on-click-right": "ghostty --class=com.mitchellh.ghostty.nmtui -e nmtui"
+    },
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰖁",
+        "format-icons": {
+            "headphone": "󰋋",
+            "default": [
+                "󰕿",
+                "󰖀",
+                "󰕾"
+            ]
+        },
+        "on-click": "pavucontrol"
+    },
+    "battery": {
+        "bat": "BAT1",
+        "adapter": "ADP1",
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰚥 {capacity}%",
+        "format-icons": [
+            "󰁺",
+            "󰁼",
+            "󰁾",
+            "󰂀",
+            "󰂂",
+            "󰁹"
+        ]
+    },
+    "custom/notification": {
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "󱅫",
+            "none": "󰂜",
+            "dnd-notification": "󰪑",
+            "dnd-none": "󰪑",
+            "inhibited-notification": "󱅫",
+            "inhibited-none": "󰂜",
+            "dnd-inhibited-notification": "󰪑",
+            "dnd-inhibited-none": "󰪑"
+        },
+        "return-type": "json",
+        "exec": "exec swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true,
+        "tooltip": false
+    },
+    "custom/cpu-mode": {
+        "exec": "~/scripts/cpu-mode --show",
+        "interval": "once",
+        "signal": 8,
+        "return-type": "json",
+        "on-click": "~/scripts/cpu-mode"
+    },
+    "custom/ascii-emoji": {
+        "format": "(◉‿◉)",
+        "on-click": "~/scripts/rofi-ascii-emoji",
+        "tooltip": false
+    },
+    "cpu": {
+        "interval": 2,
+        "format": "󰻠 {usage}%",
+        "on-click": "resources",
+        "on-click-right": "ghostty -e btop"
+    },
+    "temperature": {
+        "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
+        "input-filename": "temp1_input",
+        "interval": 5,
+        "critical-threshold": 85,
+        "format": "󰔏 {temperatureC}°C"
+    },
+    "memory": {
+        "interval": 5,
+        "format": "󰍛 {percentage}%",
+        "tooltip-format": "{used:0.1f} / {total:0.1f} GiB",
+        "on-click": "resources",
+        "on-click-right": "ghostty -e btop"
+    },
+    "custom/power": {
+        "format": "󰐥",
+        "on-click": "~/scripts/rofi-power",
+        "tooltip": false
+    },
+    "height": 30
+}
