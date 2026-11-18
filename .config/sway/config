@@ -41,15 +41,20 @@ include /etc/sway/config-vars.d/*
 # You can get the names of your outputs by running: swaymsg -t get_outputs
 
 output * bg ~/Pictures/Wallpapers/callisto_naked.jpg fill
+# Laptop screen off while the lid is closed (logind doesn't suspend on the lid
+# with the monitor plugged in, or with auto-lock off). Its workspaces move to the
+# monitor and come back when the lid opens. --reload applies the lid's current
+# state on a config reload
+bindswitch --reload --locked lid:on output eDP-1 disable
+bindswitch --reload --locked lid:off output eDP-1 enable
 
 ### Idle configuration
 #
-# On battery (ADP1/online = 0): lock after 5 minutes idle, screen off after 10.
-# Plugged in nothing happens when idle. Always lock before the laptop sleeps.
-exec swayidle -w \
-         timeout 300 '[ "$(cat /sys/class/power_supply/ADP1/online)" = 0 ] && swaylock -f -c 000000' \
-         timeout 600 '[ "$(cat /sys/class/power_supply/ADP1/online)" = 0 ] && swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
-         before-sleep 'swaylock -f -c 000000'
+# On battery (ADP1/online = 0): lock after 5 minutes idle, screen off after 10,
+# suspend after 20. Plugged in nothing happens when idle. Always lock before the
+# laptop sleeps.
+# The swayidle command lives in ~/scripts/idle-lock, which Super+I toggles.
+exec ~/scripts/idle-lock
 
 ### Input configuration
 #
@@ -115,6 +120,9 @@ input "type:keyboard" {
 
     # CPU mode: cycle the profile saver -> balanced -> performance
     bindsym $mod+p exec ~/scripts/cpu-mode
+
+    # Auto-lock: toggle the battery idle lock and screen-off, e.g. during a long job
+    bindsym $mod+i exec ~/scripts/idle-lock --toggle
 
     # Notifications: swaync shows popups and keeps a history panel
     exec swaync

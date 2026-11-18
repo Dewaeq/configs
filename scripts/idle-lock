@@ -1,0 +1,35 @@
+#!/bin/sh
+# Runs swayidle. `idle-lock` (at login) starts it with auto-lock on; `idle-lock
+# --toggle` switches auto-lock off and on, and shows the new state in the OSD.
+# On: on battery (ADP1/online = 0), lock after 5 minutes idle, turn the screen
+# off after 10 and suspend after 20; plugged in, nothing happens when idle.
+# Off: no lock and no screen-off when idle, and the power key and lid don't
+# suspend, so long jobs keep running. A suspend from the power menu still works.
+# Either way the laptop locks before it sleeps, so a suspend still locks it.
+# Locking never stops processes; only suspend does.
+off_flag="${XDG_RUNTIME_DIR:-/tmp}/idle-lock-off"
+on_battery='[ "$(cat /sys/class/power_supply/ADP1/online)" = 0 ]'
+
+if [ "$1" = --toggle ]; then
+    if [ -e "$off_flag" ]; then rm -f "$off_flag"; else touch "$off_flag"; fi
+else
+    rm -f "$off_flag"
+fi
+
+pkill -x swayidle
+if [ -e "$off_flag" ]; then
+    # The inhibitor lives as long as this swayidle, so the pkill above ends both
+    setsid -f systemd-inhibit --what=handle-power-key:handle-lid-switch \
+        --who=idle-lock --why="Auto-lock off (Super+I)" \
+        swayidle -w before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1
+    message="Auto-lock off" icon=changes-allow-symbolic
+else
+    setsid -f swayidle -w \
+        timeout 300 "$on_battery && swaylock -f -c 000000" \
+        timeout 600 "$on_battery && swaymsg 'output * power off'" resume "swaymsg 'output * power on'" \
+        timeout 1200 "$on_battery && systemctl suspend" \
+        before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1
+    message="Auto-lock on" icon=system-lock-screen-symbolic
+fi
+[ "$1" = --toggle ] && ~/scripts/osd --custom-message "$message" --custom-icon "$icon"
+exit 0
