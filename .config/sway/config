@@ -41,6 +41,8 @@ include /etc/sway/config-vars.d/*
 # You can get the names of your outputs by running: swaymsg -t get_outputs
 
 output * bg ~/Pictures/Wallpapers/callisto_naked.jpg fill
+output HDMI-A-1 pos 0 0
+output eDP-1 pos 1920 0
 # Laptop screen off while the lid is closed (logind doesn't suspend on the lid
 # with the monitor plugged in, or with auto-lock off). Its workspaces move to the
 # monitor and come back when the lid opens. --reload applies the lid's current
@@ -94,10 +96,11 @@ input "type:keyboard" {
     bindsym $mod+Return exec $term
     # Keep one windowless ghostty running for $term to talk to
     # (gtk-single-instance is on in config.ghostty; these flags only apply here, not in GNOME)
-    exec ghostty --initial-window=false --quit-after-last-window-closed=false
+    exec env GTK_IM_MODULE=simple ghostty --initial-window=false --quit-after-last-window-closed=false
 
     # Browser shortcut
-    bindsym $mod+Shift+f exec /usr/bin/firefox
+    bindsym $mod+f exec /usr/bin/firefox
+    bindsym $mod+c exec speedcrunch
 
     # Kill focused window
     bindsym $mod+Shift+q kill
@@ -223,7 +226,7 @@ input "type:keyboard" {
     bindsym $mod+e layout toggle split
 
     # Make the current focus fullscreen
-    bindsym $mod+f fullscreen
+    bindsym $mod+Shift+f fullscreen
 
     # Toggle the current focus between tiling and floating mode
     bindsym $mod+Shift+space floating toggle
@@ -301,6 +304,10 @@ bindsym $mod+r mode "resize"
     bindsym Print exec $screenshot area
     bindsym Shift+Print exec $screenshot screen
     bindsym Alt+Print exec $screenshot active
+
+    # Screen recording to ~/Videos/Recordings; the same key again stops it
+    bindsym Ctrl+Print exec ~/scripts/screenrec area
+    bindsym Ctrl+Shift+Print exec ~/scripts/screenrec screen
 
     # Base helper: grimshot outputs directly to stdout, swappy picks it up
     # set $screenshot_edit grimshot save

@@ -1,0 +1,17 @@
+#!/bin/sh
+# Toggles a screen recording to ~/Videos/Recordings. `screenrec area` asks for a
+# region, `screenrec screen` records the focused output. Run again to stop.
+pkill -INT -x wf-recorder && exit 0
+dir=~/Videos/Recordings
+mkdir -p "$dir"
+file="$dir/$(date +%Y%m%d-%H%M%S).mp4"
+case "$1" in
+    area) geom=$(slurp) || exit 1; set -- -g "$geom" ;;
+    *)    set -- -o "$(swaymsg -t get_outputs | jq -r '.[] | select(.focused).name')" ;;
+esac
+notify-send -t 2000 "Recording started" "Press the shortcut again to stop"
+# Standard BT.709 limited range, so players do not guess the colors (gray look)
+wf-recorder "$@" -x yuv420p -F scale=out_color_matrix=bt709:out_range=limited \
+    -p color_range=tv -p colorspace=bt709 -p color_primaries=bt709 -p color_trc=bt709 \
+    -f "$file"
+[ -s "$file" ] && notify-send "Recording saved" "$file"
