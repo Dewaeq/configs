@@ -7,29 +7,43 @@
 # suspend, so long jobs keep running. A suspend from the power menu still works.
 # Either way the laptop locks before it sleeps, so a suspend still locks it.
 # Locking never stops processes; only suspend does.
-off_flag="${XDG_RUNTIME_DIR:-/tmp}/idle-lock-off"
+run="${XDG_RUNTIME_DIR:-/tmp}"
+off_flag="$run/idle-lock-off"
 on_battery='[ "$(cat /sys/class/power_supply/ADP1/online)" = 0 ]'
 
-if [ "$1" = --toggle ]; then
-    if [ -e "$off_flag" ]; then rm -f "$off_flag"; else touch "$off_flag"; fi
-else
-    rm -f "$off_flag"
-fi
+# One run at a time, and each run waits until its swayidle exists, so a quick
+# second run (or key repeat) always finds and replaces it. The daemons don't
+# inherit the lock (9>&-)
+exec 9>"$run/idle-lock.lock"
+flock 9
+
+mode=on
+[ "$1" = --toggle ] && [ ! -e "$off_flag" ] && mode=off
+if [ $mode = off ]; then touch "$off_flag"; else rm -f "$off_flag"; fi
+
+wait_for() {  # wait_for gone|up: until no swayidle runs / one runs, max 2 s
+    for _ in $(seq 40); do
+        if pgrep -x swayidle >/dev/null; then [ "$1" = up ] && return; else [ "$1" = gone ] && return; fi
+        sleep 0.05
+    done
+}
 
 pkill -x swayidle
-if [ -e "$off_flag" ]; then
+wait_for gone
+if [ $mode = off ]; then
     # The inhibitor lives as long as this swayidle, so the pkill above ends both
     setsid -f systemd-inhibit --what=handle-power-key:handle-lid-switch \
         --who=idle-lock --why="Auto-lock off (Super+I)" \
-        swayidle -w before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1
+        swayidle -w before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1 9>&-
     message="Auto-lock off" icon=changes-allow-symbolic
 else
     setsid -f swayidle -w \
         timeout 300 "$on_battery && swaylock -f -c 000000" \
         timeout 600 "$on_battery && swaymsg 'output * power off'" resume "swaymsg 'output * power on'" \
         timeout 1200 "$on_battery && systemctl suspend" \
-        before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1
+        before-sleep 'swaylock -f -c 000000' >/dev/null 2>&1 9>&-
     message="Auto-lock on" icon=system-lock-screen-symbolic
 fi
-[ "$1" = --toggle ] && ~/scripts/osd --custom-message "$message" --custom-icon "$icon"
+wait_for up
+[ "$1" = --toggle ] && ~/scripts/osd --custom-message "$message" --custom-icon "$icon" 9>&-
 exit 0

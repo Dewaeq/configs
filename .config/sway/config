@@ -45,10 +45,11 @@ output HDMI-A-1 pos 0 0
 output eDP-1 pos 1920 0
 # Laptop screen off while the lid is closed (logind doesn't suspend on the lid
 # with the monitor plugged in, or with auto-lock off). Its workspaces move to the
-# monitor and come back when the lid opens. --reload applies the lid's current
-# state on a config reload
-bindswitch --reload --locked lid:on output eDP-1 disable
-bindswitch --reload --locked lid:off output eDP-1 enable
+# monitor and come back when the lid opens. sway only learns the lid state from
+# lid events, so exec_always reads it at login and on reload
+bindswitch --locked lid:on output eDP-1 disable
+bindswitch --locked lid:off output eDP-1 enable
+exec_always grep -qs closed /proc/acpi/button/lid/*/state && swaymsg output eDP-1 disable
 
 ### Idle configuration
 #
@@ -124,8 +125,9 @@ input "type:keyboard" {
     # CPU mode: cycle the profile saver -> balanced -> performance
     bindsym $mod+p exec ~/scripts/cpu-mode
 
-    # Auto-lock: toggle the battery idle lock and screen-off, e.g. during a long job
-    bindsym $mod+i exec ~/scripts/idle-lock --toggle
+    # Auto-lock off: no idle lock or suspend, and the lid and power key don't suspend.
+    # Toggle auto-lock, e.g. to keep a long job running
+    bindsym --no-repeat $mod+i exec ~/scripts/idle-lock --toggle
 
     # Notifications: swaync shows popups and keeps a history panel
     exec swaync
