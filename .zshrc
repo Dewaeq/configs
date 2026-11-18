@@ -86,10 +86,23 @@ alias cuu="claude-ugr /usage"
 alias cur="claude-ugr /resume"
 
 function mdd() {
-  local target=/tmp/$1.html
-  mkdir -p "${target%/*}"
-  pandoc $1 > $target
-  xdg-open $target
+  local target=$HOME/.cache/mdd${1:A}.html
+  mkdir -p "${target:h}"
+  pandoc "$1" > "$target"
+  xdg-open "$target"
+}
+
+function cpf() {
+  realpath "$@" | sed 's|^|file://|' | wl-copy --type text/uri-list
+  # printf 'file://%s\n' "$(realpath "$1")" | wl-copy --type text/uri-list
+}
+
+function y() {
+	local tmp cwd; tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd" || builtin true
+	command rm -f -- "$tmp"
 }
 
 # ros2 run --prefix "gdb -ex 'break main' -ex run --args" graph_slam graph_slam_node
